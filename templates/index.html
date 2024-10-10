@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Grocery List App</title>
+</head>
+<body>
+    <h2>Upload Your Grocery List</h2>
+
+    <!-- Image Upload Section -->
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="image" id="image" accept="image/*">
+        <button type="button" onclick="uploadImage()">Upload</button>
+    </form>
+
+    <!-- Display extracted text -->
+    <div id="extractedTextSection" style="display: none;">
+        <h3>Extracted Grocery List</h3>
+        <ul id="itemList"></ul>
+        <button type="button" onclick="confirmList()">Confirm List</button>
+    </div>
+
+    <script>
+        function uploadImage() {
+            const formData = new FormData();
+            const fileInput = document.getElementById('image');
+            formData.append('image', fileInput.files[0]);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    const extractedText = data.text;
+                    displayExtractedText(extractedText);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function displayExtractedText(text) {
+            const itemList = document.getElementById('itemList');
+            const items = text.split('\n').filter(item => item.trim());  // Split text by line
+
+            itemList.innerHTML = '';  // Clear the list
+            items.forEach((item, index) => {
+                const listItem = `<li><input type="text" name="item${index}" value="${item}">
+                                  <button type="button" onclick="removeItem(this)">Remove</button></li>`;
+                itemList.innerHTML += listItem;
+            });
+
+            document.getElementById('extractedTextSection').style.display = 'block';
+        }
+
+        function removeItem(button) {
+            const li = button.parentElement;
+            li.parentElement.removeChild(li);
+        }
+
+        function confirmList() {
+            alert('List confirmed!');
+        }
+    </script>
+</body>
+</html>
